@@ -2,7 +2,7 @@ const express = require('express')
 const cors = require('cors');
 const app = express();
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 3000
 
@@ -26,7 +26,7 @@ async function run() {
         const db = client.db('Zap_Shift_User');
         const parcelsCollection = db.collection('parcels');
 
-        // parcel api
+        // get parcels from dashboard
         app.get('/parcels', async (req, res) => {
             const query = {}
             const {email} = req.query;
@@ -34,16 +34,28 @@ async function run() {
             if(email){
                 query.senderEmail = email;
             }
+            const options = { sort: { createdAt: -1 } }
 
-            const cursor = parcelsCollection.find(query);
+            const cursor = parcelsCollection.find(query, options)
             const result = await cursor.toArray();
             res.send(result);
         })
 
+        // add parcel to dashboard
         app.post('/parcels', async (req, res) => {
             const parcel = req.body;
+            // parcel created time
+            parcel.createdAt = new Date();
             const result = await parcelsCollection.insertOne(parcel);
             res.send(result)
+        })
+
+        // delete parcel from dashboard
+        app.delete('/parcels/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await parcelsCollection.deleteOne(query);
+            res.send(result);
         })
 
         await client.db("admin").command({ ping: 1 });
