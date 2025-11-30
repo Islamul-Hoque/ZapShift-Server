@@ -41,11 +41,18 @@ async function run() {
             res.send(result);
         })
 
+        // get single parcel from dashboard for details page and payment
+        app.get('/parcels/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await parcelsCollection.findOne(query);
+            res.send(result);
+        })
+
         // add parcel to dashboard
         app.post('/parcels', async (req, res) => {
             const parcel = req.body;
-            // parcel created time
-            parcel.createdAt = new Date();
+            parcel.createdAt = new Date() // parcel created time
             const result = await parcelsCollection.insertOne(parcel);
             res.send(result)
         })
